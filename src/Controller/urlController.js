@@ -2,6 +2,7 @@ const urlModel = require('../Model/urlModel')
 const validUrl = require('valid-url')
 const shortId = require('shortid')
 const {GET_ASYNC , SET_ASYNC} = require('../../utils/redisClient')
+const {checkValidUrl} = require('../../utils/axiosValidation')
 const createUrl = async (req,res) => {
     try {
         const {longUrl} = req.body
@@ -12,6 +13,10 @@ const createUrl = async (req,res) => {
             message : "This is not a valid URL"
         })
 
+        const isValidUrlAxios = await checkValidUrl(longUrl)
+
+        if(isValidUrlAxios.isValid == false ) return res.status(400).send({status : false , message : "Invalid URL axios"})
+ 
         let cachedUrl = await GET_ASYNC(longUrl)
         if(cachedUrl) {
             const {shortUrl} = JSON.parse(cachedUrl)
