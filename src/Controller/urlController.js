@@ -1,7 +1,7 @@
 const urlModel = require('../Model/urlModel')
 const validUrl = require('valid-url')
 const shortId = require('shortid')
-
+const {GET_ASYNC , SET_ASYNC} = require('../../utils/redisClient')
 const createUrl = async (req,res) => {
     try {
         const {longUrl} = req.body
@@ -14,7 +14,7 @@ const createUrl = async (req,res) => {
 
         let cachedUrl = await GET_ASYNC(longUrl)
         if(cachedUrl) {
-            const {shortUrl} = JSON.parse({cachedUrl})
+            const {shortUrl} = JSON.parse(cachedUrl)
             return res.status(200).send({
                 status : true , 
                 message : "URL already exists in cache" ,
@@ -32,15 +32,15 @@ const createUrl = async (req,res) => {
                 'EX', 
                 60*60*24
             )
-            return res.status(200).send({status : true , message : "Already Availabel" ,
+            return res.status(200).send({status : true , message : "Already Available" ,
             shortUrl : url.shortUrl
         })
         }
 
         const urlCode = shortId.generate()
-        const shortUrl = `localhost:3000/${urlCode}`
+        const shortUrl = `http://localhost:5000/${urlCode}`
 
-        const data = await UrlModel.create({
+        const data = await urlModel.create({
             urlCode ,
             longUrl ,
             shortUrl
@@ -48,7 +48,7 @@ const createUrl = async (req,res) => {
 
         await SET_ASYNC(
             longUrl , 
-            JSON.stringly({
+            JSON.stringify({
                 urlCode ,
                 shortUrl
             }),
@@ -56,7 +56,7 @@ const createUrl = async (req,res) => {
             60*60*24
         )
 
-        res.status(201).send({status : true , data : url})
+        res.status(201).send({status : true , data : data})
     }catch(error) {
         res.status(500).send({status: false , error : error.message})
     }
@@ -70,7 +70,7 @@ const getUrl = async (req,res) =>{
 
         let cachedUrl = await GET_ASYNC(urlCode)
         if(cachedUrl) {
-            const {longUrl } = JSON.stringify(cachedUrl)
+            const {longUrl } = JSON.parse(cachedUrl)
             return res.status(302).redirect(longUrl)
         }
 
@@ -86,7 +86,6 @@ const getUrl = async (req,res) =>{
             'EX',
             60*60*24
         )
-
         return res.redirect(url.longUrl)
     }catch(error) {
         res.status(500).send({status : false  , error : error.message })

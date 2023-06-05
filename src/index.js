@@ -13,6 +13,6 @@ mongoose.connect('mongodb+srv://rahul4317:L0Jf8dKS6E1sKl1C@cluster0.dwi1fgs.mong
 
 app.use('/',route)
 
-app.listen(3000,()=>{
-    console.log(`The server is running on port 3000`)
+app.listen(5000,()=>{
+    console.log(`The server is running on port 5000`)
 })
